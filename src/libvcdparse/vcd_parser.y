@@ -100,14 +100,19 @@
 %token ENDDEFINITIONS "$enddefinitions"
 %token DUMPVARS "$dumpvars"
 %token END "$end"
+%token LOGIC_ONE "1"
+%token LOGIC_ZERO "0"
+%token LOGIC_UNKOWN "x"
+%token LOGIC_HIGHZ "z"
 %token <std::string> String "string"
 %token <std::string> Multiline "multiline-string"
 %token <std::string> VarId "var-id"
-%token <std::string> LogicValue "logic-value"
 %token <size_t> Time "time-value"
 %token <size_t> Integer "integer-value"
 %token <std::string> VarType "var-type"
 %token EOF 0 "end-of-file"
+
+%type <LogicValue> LogicValue
 
 %start vcd_file
 
@@ -136,7 +141,7 @@ definitions : scope { }
      | definitions scope { }
      | definitions var { }
      | definitions upscope { }
-     | definitions enddefinitions { cout << "Ending definitions\n"; }
+     | definitions enddefinitions { }
      ;
 
 var : VAR var_type Integer String String END { }
@@ -149,25 +154,28 @@ var_type : WIRE { }
 upscope : UPSCOPE END { }
         ;
 
-enddefinitions : ENDDEFINITIONS END { cout << "enddefinitions\n"; }
+enddefinitions : ENDDEFINITIONS END { }
 
 dumpvars : Time DUMPVARS var_values END { }
 
 
 
 
-change_list : change_values { }
-            | change_list change_values { }
+change_list : time_values { }
+            | change_list time_values { }
             ;
 
-change_values : Time var_values { }
+time_values : Time var_values { }
 
-var_values : var_value { }
-           | var_values var_value { }
+var_values : LogicValue VarId { }
+           | var_values LogicValue VarId { }
            ;
 
-var_value : LogicValue VarId { }
-          ;
+LogicValue : LOGIC_ONE    { $$ = vcdparse::LogicValue::ONE; }
+           | LOGIC_ZERO   { $$ = vcdparse::LogicValue::ZERO; }
+           | LOGIC_UNKOWN { $$ = vcdparse::LogicValue::UNKOWN; }
+           | LOGIC_HIGHZ  { $$ = vcdparse::LogicValue::HIGHZ; }
+           ;
 
 %%
 
