@@ -96,6 +96,7 @@
 %token VAR "$var"
 %token WIRE "wire"
 %token REG "reg"
+%token PARAMETER "parameter"
 %token UPSCOPE "$upscope"
 %token ENDDEFINITIONS "$enddefinitions"
 %token DUMPVARS "$dumpvars"
@@ -107,6 +108,7 @@
 %token <std::string> String "string"
 %token <std::string> Multiline "multiline-string"
 %token <std::string> VarId "var-id"
+%token <std::string> BitString "bit-string"
 %token <size_t> Time "time-value"
 %token <size_t> Integer "integer-value"
 %token <std::string> VarType "var-type"
@@ -144,11 +146,13 @@ definitions : scope { }
      | definitions enddefinitions { }
      ;
 
-var : VAR var_type Integer String String END { }
+var : VAR var_type String String String END { }
+    | VAR var_type String String String String END { }
     ;
 
 var_type : WIRE { }
          | REG { }
+         | PARAMETER { }
          ;
 
 upscope : UPSCOPE END { }
@@ -175,6 +179,7 @@ LogicValue : LOGIC_ONE    { $$ = vcdparse::LogicValue::ONE; }
            | LOGIC_ZERO   { $$ = vcdparse::LogicValue::ZERO; }
            | LOGIC_UNKOWN { $$ = vcdparse::LogicValue::UNKOWN; }
            | LOGIC_HIGHZ  { $$ = vcdparse::LogicValue::HIGHZ; }
+           | BitString    { }
            ;
 
 %%
