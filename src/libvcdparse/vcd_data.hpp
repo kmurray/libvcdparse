@@ -16,6 +16,7 @@ namespace vcdparse {
         UNKOWN,
         HIGHZ
     };
+    std::ostream& operator<<(std::ostream& os, LogicValue val);
 
     class TimeValue {
         public:
@@ -48,11 +49,11 @@ namespace vcdparse {
                 , hierarchical_name_(new_hierarchical_name)
                 {}
 
-            Type type() { return type_; }
-            size_t width() { return width_; }
-            char id() { return id_; }
-            std::vector<std::string> hierarchical_name() { return hierarchical_name_; }
-            std::string name() { return *(--hierarchical_name_.end()); }
+            Type type() const { return type_; }
+            size_t width() const { return width_; }
+            char id() const { return id_; }
+            std::vector<std::string> hierarchical_name() const { return hierarchical_name_; }
+            std::string name() const { return *(--hierarchical_name_.end()); }
 
         private:
             Type type_;
@@ -60,6 +61,7 @@ namespace vcdparse {
             char id_;
             std::vector<std::string> hierarchical_name_;
     };
+    std::ostream& operator<<(std::ostream& os, Var::Type type);
 
     class SignalValues {
         public:
@@ -96,15 +98,14 @@ namespace vcdparse {
 
     class VcdData {
         public:
-            typedef std::unordered_map<char, std::vector<TimeValue>> TimeValuesById;
-            typedef std::unordered_map<char, std::string> NamesById;
             VcdData() = default;
             VcdData(const Header& new_header, std::vector<SignalValues> new_signal_values)
                 : header_(new_header)
                 , signal_values_(new_signal_values)
                 {}
 
-            const Header& header() { return header_; }
+            const Header& header() const { return header_; }
+            const std::vector<SignalValues>& signal_values() const { return signal_values_; }
 
         private:
             Header header_;

@@ -140,8 +140,10 @@
 vcd_file : vcd_header definitions change_list { 
                 std::vector<SignalValues> signal_values;
 
-                for(auto var : $2) {
-                    signal_values.emplace_back(var, std::move(driver.change_list_[var.id()]));
+                auto defs = $2;
+
+                for(auto var : defs) {
+                    signal_values.emplace_back(var, driver.change_list_[var.id()]);
                 }
 
                 driver.vcd_data_ = VcdData($1, signal_values);
@@ -166,10 +168,10 @@ scope : SCOPE MODULE String END { $$ = $3; }
       ;
 
 definitions : scope { driver.current_scope_.push_back($1); }
-     | definitions scope { driver.current_scope_.push_back($2); }
+     | definitions scope { $$ = $1; driver.current_scope_.push_back($2); }
      | definitions var { $$ = $1; $$.push_back($2); }
-     | definitions upscope { driver.current_scope_.pop_back(); }
-     | definitions enddefinitions { }
+     | definitions upscope { $$ = $1; driver.current_scope_.pop_back(); }
+     | definitions enddefinitions { $$ = $1; }
      ;
 
 var : VAR var_type String String String END { 
