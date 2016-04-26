@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     if(loaded) {
         std::cout << "Successfully loaded VCD\n";
 
-        auto vcd_data = vcd_loader.get_vcd_data();
+        auto& vcd_data = vcd_loader.get_vcd_data();
         print_vcd(vcd_data);
         return 0;
     } else {

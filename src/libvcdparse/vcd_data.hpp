@@ -20,16 +20,16 @@ namespace vcdparse {
 
     class TimeValue {
         public:
-            TimeValue(size_t new_time, LogicValue new_value)
+            TimeValue(unsigned new_time, LogicValue new_value)
                 : time_(new_time)
                 , value_(new_value)
                 {}
 
-            size_t time() const { return time_; }
+            unsigned time() const { return time_; }
             LogicValue value() const { return value_; }
         
         private:
-            size_t time_;
+            unsigned time_;
             LogicValue value_;
     };
 
