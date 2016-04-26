@@ -18,6 +18,7 @@ namespace vcdparse {
     };
 
     class TimeValue {
+        public:
             TimeValue(size_t new_time, LogicValue new_value)
                 : time_(new_time)
                 , value_(new_value)
@@ -26,42 +27,54 @@ namespace vcdparse {
             size_t time() const { return time_; }
             LogicValue value() const { return value_; }
         
-        public:
+        private:
             size_t time_;
             LogicValue value_;
+    };
+
+    class Var {
+        public:
+            enum class Type {
+                WIRE,
+                REG,
+                PARAMETER
+            };
+
+            Var() = default;
+            Var(Type new_type, size_t new_width, char new_id, std::vector<std::string> new_hierarchical_name)
+                : type_(new_type)
+                , width_(new_width)
+                , id_(new_id)
+                , hierarchical_name_(new_hierarchical_name)
+                {}
+
+            Type type() { return type_; }
+            size_t width() { return width_; }
+            char id() { return id_; }
+            std::vector<std::string> hierarchical_name() { return hierarchical_name_; }
+            std::string name() { return *(--hierarchical_name_.end()); }
+
+        private:
+            Type type_;
+            size_t width_;
+            char id_;
+            std::vector<std::string> hierarchical_name_;
     };
 
     class SignalValues {
         public:
             typedef std::vector<TimeValue> TimeValues;
 
-            SignalValues(const std::string& new_hierarchical_name, const std::string& new_id, const TimeValues& tvs)
-                : hierarchical_name_(new_hierarchical_name)
-                , id_(new_id)
+            SignalValues(const Var& new_var, const TimeValues& tvs)
+                : var_(new_var)
                 , time_values_(tvs)
                 {}
 
-            const std::string& heirarchical_name() const { return hierarchical_name_; }
-            std::string name() const { 
-                //We use / as the hierarchy divider
-                auto idx = hierarchical_name_.find_last_of("/");
-                if(idx == std::string::npos) {
-                    //No heirarhcy in name
-                    return hierarchical_name_; 
-                } else {
-                    assert(idx + 1 < hierarchical_name_.size());
-                    //Split of only the end of the name
-                    return std::string(hierarchical_name_.begin() + idx + 1, hierarchical_name_.end());
-                }
-            }
-            const std::string& id() const { return id_; }
             const TimeValues& time_values() const { return time_values_; }
-
-            void add_time_value(const TimeValue& tv) { time_values_.push_back(tv); }
+            const Var& var() const { return var_; }
 
         private:
-            std::string hierarchical_name_;
-            std::string id_; //i.e. symbol used to represent this signal in the VCD
+            Var var_;
             TimeValues time_values_;
     };
 
@@ -83,24 +96,19 @@ namespace vcdparse {
 
     class VcdData {
         public:
+            typedef std::unordered_map<char, std::vector<TimeValue>> TimeValuesById;
+            typedef std::unordered_map<char, std::string> NamesById;
+            VcdData() = default;
+            VcdData(const Header& new_header, std::vector<SignalValues> new_signal_values)
+                : header_(new_header)
+                , signal_values_(new_signal_values)
+                {}
+
             const Header& header() { return header_; }
-            void set_header(const Header& new_header) { header_ = new_header; }
-
-            void add_signal_values(const std::string& key, const SignalValues& values) { 
-                auto ret = signal_values_.insert(std::make_pair(key, values));
-                assert(ret.second); //Was inserted
-            }
-
-            const SignalValues& get_signal_values(const std::string& name) { 
-                auto iter = signal_values_.find(name);
-                assert(iter != signal_values_.end());
-
-                return iter->second;
-            }
 
         private:
             Header header_;
-            std::unordered_map<std::string, SignalValues> signal_values_;
+            std::vector<SignalValues> signal_values_;
 
     };
 

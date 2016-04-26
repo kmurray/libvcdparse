@@ -80,12 +80,12 @@ ENDL (\n|\n\r)
 
 
 $end                                            {
-                                                     cout << "END\n";  
+                                                     /*cout << "END\n";  */
                                                     return vcdparse::Parser::make_END(loc_); 
                                                 }
 
 $date                                           {
-                                                     cout << "DATE\n";  
+                                                     /*cout << "DATE\n";  */
                                                     BEGIN(multiline); 
                                                     return vcdparse::Parser::make_DATE(loc_); 
                                                 }
@@ -95,68 +95,73 @@ $version                                        {
                                                     return vcdparse::Parser::make_VERSION(loc_); 
                                                 }
 $timescale                                      {
-                                                     cout << "TIMESCALE\n";  
+                                                     /*cout << "TIMESCALE\n";  */
                                                     BEGIN(multiline); 
                                                     return vcdparse::Parser::make_TIMESCALE(loc_); 
                                                 }
 <multiline>.*                                   { 
-                                                    cout << "Multiline: " << YYText() << "\n"; 
+                                                    /*cout << "Multiline: " << YYText() << "\n"; */
                                                     BEGIN(INITIAL);
                                                     return vcdparse::Parser::make_Multiline(YYText(), loc_); 
                                                 }
 $scope                                          { 
-                                                     cout << "SCOPE\n";  
+                                                     /*cout << "SCOPE\n";  */
                                                     return vcdparse::Parser::make_SCOPE(loc_); 
                                                 }
 module                                          { 
-                                                     cout << "MODULE\n";  
+                                                     /*cout << "MODULE\n";  */
                                                     return vcdparse::Parser::make_MODULE(loc_); 
                                                 }
 $upscope                                        { 
-                                                     cout << "UPSCOPE\n";  
+                                                     /*cout << "UPSCOPE\n";  */
                                                     return vcdparse::Parser::make_UPSCOPE(loc_); 
                                                 }
 $enddefinitions                                 { 
-                                                     cout << "ENDDEFINITIONS\n";  
+                                                     /*cout << "ENDDEFINITIONS\n";  */
                                                     return vcdparse::Parser::make_ENDDEFINITIONS(loc_); 
                                                 }
 
 $var                                            { 
-                                                    cout << "VAR\n";
+                                                    /*cout << "VAR\n";*/
                                                     BEGIN(var); 
                                                     return vcdparse::Parser::make_VAR(loc_); 
                                                 }
 <var>wire                                       { 
-                                                    cout << "WIRE\n"; 
+                                                    /*cout << "WIRE\n"; */
                                                     return vcdparse::Parser::make_WIRE(loc_); 
                                                 }
 <var>reg                                        { 
-                                                    cout << "REG\n"; 
+                                                    /*cout << "REG\n"; */
                                                     return vcdparse::Parser::make_REG(loc_); 
                                                 }
 <var>parameter                                  { 
-                                                    cout << "REG\n"; 
+                                                    /*cout << "REG\n"; */
                                                     return vcdparse::Parser::make_PARAMETER(loc_); 
                                                 }
 <var>$end                                       { 
-                                                    cout << "END\n"; 
+                                                    /*cout << "END\n"; */
                                                     BEGIN(INITIAL); 
                                                     return vcdparse::Parser::make_END(loc_); 
                                                 }
 <var>({ALPHA}|{DIGIT}|{SYMBOL})+                { 
-                                                    cout << "Var String: " << YYText() << "\n"; 
+                                                    /*cout << "Var String: " << YYText() << "\n"; */
                                                     return vcdparse::Parser::make_String(YYText(), loc_); 
                                                 }
 
 
 $dumpvars                                       { 
-                                                     cout << "DUMPVARS\n";  
+                                                     /*cout << "DUMPVARS\n";  */
                                                     BEGIN(dumpvars); 
                                                     return vcdparse::Parser::make_DUMPVARS(loc_); 
                                                 }
 <dumpvars>$end                                  { 
-                                                    cout << "END\n"; 
+                                                    /*cout << "END\n"; */
                                                     BEGIN(changevalues); 
+                                                    return vcdparse::Parser::make_END(loc_); 
+                                                }
+<changevalues>$end                              { 
+                                                    /*cout << "END\n"; */
+                                                    BEGIN(INITIAL); 
                                                     return vcdparse::Parser::make_END(loc_); 
                                                 }
 <dumpvars,changevalues>
@@ -191,7 +196,7 @@ $dumpvars                                       {
 <dumpvars,changevalues>
 {ID_VALUE}                                      {
                                                     /*cout << "ID: '" << YYText() << "'\n";*/
-                                                    return vcdparse::Parser::make_VarId(YYText(), loc_); 
+                                                    return vcdparse::Parser::make_VarId(YYText()[0], loc_); 
                                                 }
 <*>
 #{DIGIT}+                                    {
@@ -213,7 +218,7 @@ $dumpvars                                       {
                                                 }
 
 ({ALPHA}|{SYMBOL})({ALPHA}|{DIGIT}|{SYMBOL})* { 
-                                                    cout << "String: " << YYText() << "\n"; 
+                                                    /*cout << "String: " << YYText() << "\n"; */
                                                     return vcdparse::Parser::make_String(YYText(), loc_); 
                                                 }
 
