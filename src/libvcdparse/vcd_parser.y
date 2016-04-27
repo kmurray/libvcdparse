@@ -202,10 +202,10 @@ upscope : UPSCOPE END { }
 
 enddefinitions : ENDDEFINITIONS END { }
 
-change_list : Time DUMPVARS  { driver.curr_time_ = $1; }
-            | change_list Time  { driver.curr_time_ = $2; }
+change_list : Time DUMPVARS  { driver.set_curr_time($1); }
+            | change_list Time  { driver.set_curr_time($2); }
             | change_list LogicValue VarId { 
-                    driver.change_list_[$3].emplace_back(driver.curr_time_, $2);
+                    driver.change_list_[$3].emplace_back(driver.curr_time(), $2);
 
                     driver.change_count_++;
                     if(driver.change_count_ % 10000000 == 0) {

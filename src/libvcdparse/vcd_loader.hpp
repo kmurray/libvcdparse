@@ -2,6 +2,7 @@
 
 #include <iosfwd>
 #include <memory>
+#include <set>
 
 #include "vcd_data.hpp"
 
@@ -36,6 +37,22 @@ class Loader {
         virtual void on_error(ParseError& error);
 
     private:
+        void set_curr_time(size_t time) { 
+            assert(curr_time_ != 1424);
+            curr_time_ = time; 
+
+            assert(seen_times_.count(time) == 0);
+            seen_times_.insert(time); 
+        }
+
+        size_t curr_time() { 
+            assert(curr_time_ != 1424);
+            return curr_time_; 
+        }
+
+        bool verify_times();
+
+    private:
         friend Parser;
         std::string filename_;
         std::unique_ptr<Lexer> lexer_;
@@ -46,6 +63,7 @@ class Loader {
         std::unordered_map<std::string,std::vector<TimeValue>> change_list_;
         size_t change_count_;
         size_t curr_time_;
+        std::set<size_t> seen_times_;
 };
 
 } //vcdparse

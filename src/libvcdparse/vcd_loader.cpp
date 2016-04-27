@@ -44,16 +44,14 @@ bool Loader::load(std::istream& is, std::string filename) {
         //Do the parsing
         retval = parser_->parse();
 
-        //while(true) {
-            //lexer_->next_token();
-        //}
-
     } catch (ParseError& error) {
         //Users can re-define on_error if they want
         //to do something else (like re-throw)
         on_error(error);
         return false;
     }
+
+    assert(verify_times());
 
     //Bision returns 0 if successful
     return (retval == 0);
@@ -62,6 +60,20 @@ bool Loader::load(std::istream& is, std::string filename) {
 void Loader::on_error(ParseError& error) {
     //Default implementation, just print out the error
     std::cout << "VCD Error " << error.loc() << ": " << error.what() << "\n";
+}
+
+bool Loader::verify_times() {
+    for(const auto& sig_values : vcd_data_.signal_values()) {
+        for(auto tv : sig_values.time_values()) {
+
+            if(seen_times_.count(tv.time()) == 0) {
+                assert(false);
+                return false;
+            }
+
+        }
+    }
+    return true;
 }
 
 } //vcdparse

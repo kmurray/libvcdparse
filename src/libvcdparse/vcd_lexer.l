@@ -234,7 +234,7 @@ $dumpvars                                       {
                                                         msg_ss << "Failed to parse Time value '" << YYText() << "'";
                                                         throw vcdparse::ParseError(msg_ss.str(), loc_);
                                                     }
-                                                    /*cout << "Time: " << val << " '" << YYText() << "'\n";*/
+                                                    /*cout << "Time: " << YYText() << "\n";*/
                                                     return vcdparse::Parser::make_Time(val, loc_); 
                                                 }
 
