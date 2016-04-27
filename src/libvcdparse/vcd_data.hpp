@@ -42,7 +42,7 @@ namespace vcdparse {
             };
 
             Var() = default;
-            Var(Type new_type, size_t new_width, char new_id, std::vector<std::string> new_hierarchical_name)
+            Var(Type new_type, size_t new_width, std::string new_id, std::vector<std::string> new_hierarchical_name)
                 : type_(new_type)
                 , width_(new_width)
                 , id_(new_id)
@@ -51,14 +51,14 @@ namespace vcdparse {
 
             Type type() const { return type_; }
             size_t width() const { return width_; }
-            char id() const { return id_; }
+            std::string id() const { return id_; }
             std::vector<std::string> hierarchical_name() const { return hierarchical_name_; }
             std::string name() const { return *(--hierarchical_name_.end()); }
 
         private:
             Type type_;
             size_t width_;
-            char id_;
+            std::string id_;
             std::vector<std::string> hierarchical_name_;
     };
     std::ostream& operator<<(std::ostream& os, Var::Type type);

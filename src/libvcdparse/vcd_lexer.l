@@ -61,9 +61,9 @@ ENDL (\n|\n\r)
 /* Lexer states */
 %x multiline
 %x var
-%x dumpvars
 %x changevalues
 %x varid
+%x change_varid
 
 
 %%
@@ -73,7 +73,7 @@ ENDL (\n|\n\r)
     loc_.step(); //Move begining of location to end
 %}
 
-<INITIAL,dumpvars,changevalues,var,varid>
+<INITIAL,changevalues,var,varid>
 {WS}+                                           { /* skip white space */ loc_.step(); }
 
 <*>
@@ -163,63 +163,64 @@ $var                                            {
                                                     return vcdparse::Parser::make_String(YYText(), loc_); 
                                                 }
 
-<varid>{ID_VALUE}                               {
+<varid>{ID_VALUE}+                               {
                                                     BEGIN(INITIAL);
-                                                    return vcdparse::Parser::make_VarId(YYText()[0], loc_);
+                                                    return vcdparse::Parser::make_VarId(YYText(), loc_);
                                                 }
 
 
 $dumpvars                                       { 
                                                      /*cout << "DUMPVARS\n";  */
-                                                    BEGIN(dumpvars); 
-                                                    return vcdparse::Parser::make_DUMPVARS(loc_); 
-                                                }
-<dumpvars>$end                                  { 
-                                                    /*cout << "END\n"; */
                                                     BEGIN(changevalues); 
-                                                    return vcdparse::Parser::make_END(loc_); 
+                                                    return vcdparse::Parser::make_DUMPVARS(loc_); 
                                                 }
 <changevalues>$end                              { 
                                                     /*cout << "END\n"; */
-                                                    BEGIN(INITIAL); 
+                                                    /*BEGIN(INITIAL); */
                                                     return vcdparse::Parser::make_END(loc_); 
                                                 }
-<dumpvars,changevalues>
+<changevalues>
 ^1                                              { 
                                                      /*cout << "Logic_val: " << YYText() << "\n"; */
+                                                    BEGIN(change_varid);
                                                     return vcdparse::Parser::make_LOGIC_ONE(loc_); 
                                                 }
-<dumpvars,changevalues>
+<changevalues>
 ^0                                              { 
                                                      /*cout << "Logic_val: " << YYText() << "\n"; */
+                                                    BEGIN(change_varid);
                                                     return vcdparse::Parser::make_LOGIC_ZERO(loc_); 
                                                 }
-<dumpvars,changevalues>
+<changevalues>
 ^(x|X)                                          { 
                                                      /*cout << "Logic_val: " << YYText() << "\n"; */
+                                                    BEGIN(change_varid);
                                                     return vcdparse::Parser::make_LOGIC_UNKOWN(loc_); 
                                                 }
-<dumpvars,changevalues>
+<changevalues>
 ^(z|Z)                                          { 
                                                      /*cout << "Logic_val: " << YYText() << "\n"; */
+                                                    BEGIN(change_varid);
                                                     return vcdparse::Parser::make_LOGIC_HIGHZ(loc_); 
                                                 }
-<dumpvars,changevalues>
+<changevalues>
 ^b{DIGIT}+                                      {
                                                     const char* begin = YYText() + 1;
                                                     const char* end = YYText() + YYLeng();
                                                     std::string str(begin, end);
                                                     /*cout << "Logic_val: " << YYText() << "\n";*/
+                                                    BEGIN(change_varid);
                                                     return vcdparse::Parser::make_BitString(str, loc_);
                                                 }
 
-<dumpvars,changevalues>
-{ID_VALUE}                                      {
+<change_varid>
+{ID_VALUE}+$                                    {
                                                     /*cout << "ID: '" << YYText() << "'\n";*/
-                                                    return vcdparse::Parser::make_VarId(YYText()[0], loc_); 
+                                                    BEGIN(changevalues);
+                                                    return vcdparse::Parser::make_VarId(YYText(), loc_); 
                                                 }
 <*>
-#{DIGIT}+                                    {
+^#{DIGIT}+                                    {
                                                     const char* begin = YYText() + 1;
                                                     const char* end = YYText() + YYLeng();
                                                     std::string str(begin, end);

@@ -43,7 +43,7 @@ class Loader {
 
         VcdData vcd_data_;
         std::vector<std::string> current_scope_;
-        std::unordered_map<char,std::vector<TimeValue>> change_list_;
+        std::unordered_map<std::string,std::vector<TimeValue>> change_list_;
         size_t change_count_;
         size_t curr_time_;
 };

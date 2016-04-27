@@ -109,7 +109,7 @@
 %token LOGIC_HIGHZ "z"
 %token <std::string> String "string"
 %token <std::string> Multiline "multiline-string"
-%token <char> VarId "var-id"
+%token <std::string> VarId "var-id"
 %token <std::string> BitString "bit-string"
 %token <size_t> Time "time-value"
 %token <size_t> Integer "integer-value"
