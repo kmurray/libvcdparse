@@ -63,6 +63,7 @@ ENDL (\n|\n\r)
 %x var
 %x dumpvars
 %x changevalues
+%x varid
 
 
 %%
@@ -72,7 +73,7 @@ ENDL (\n|\n\r)
     loc_.step(); //Move begining of location to end
 %}
 
-<INITIAL,dumpvars,changevalues,var>
+<INITIAL,dumpvars,changevalues,var,varid>
 {WS}+                                           { /* skip white space */ loc_.step(); }
 
 <*>
@@ -143,9 +144,28 @@ $var                                            {
                                                     BEGIN(INITIAL); 
                                                     return vcdparse::Parser::make_END(loc_); 
                                                 }
-<var>({ALPHA}|{DIGIT}|{SYMBOL})+                { 
+<var>{DIGIT}+                                   {
+                                                    size_t val;
+                                                    stringstream ss(YYText());
+                                                    ss >> val;
+
+                                                    if(ss.fail() || !ss.eof()) {
+                                                        stringstream msg_ss;
+                                                        msg_ss << "Failed to parse var width '" << YYText() << "'";
+                                                        throw vcdparse::ParseError(msg_ss.str(), loc_);
+                                                    }
+                                                    BEGIN(varid);
+                                                    /*cout << "Time: " << val << " '" << YYText() << "'\n";*/
+                                                    return vcdparse::Parser::make_Integer(val, loc_); 
+                                                }
+({ALPHA}|{SYMBOL})({ALPHA}{DIGIT}{SYMBOL})+     { 
                                                     /*cout << "Var String: " << YYText() << "\n"; */
                                                     return vcdparse::Parser::make_String(YYText(), loc_); 
+                                                }
+
+<varid>{ID_VALUE}                               {
+                                                    BEGIN(INITIAL);
+                                                    return vcdparse::Parser::make_VarId(YYText()[0], loc_);
                                                 }
 
 

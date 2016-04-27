@@ -174,44 +174,21 @@ definitions : scope { driver.current_scope_.push_back($1); }
      | definitions enddefinitions { $$ = $1; }
      ;
 
-var : VAR var_type String String String END { 
-            stringstream width_ss;
-            width_ss << $3; 
-            size_t width;
-            width_ss >> width;
-            if(width_ss.fail() || !width_ss.eof()) {
-                stringstream msg_ss;
-                msg_ss << "Failed to parse width value '" << $3 << "'";
-                throw vcdparse::ParseError(msg_ss.str(), driver.lexer_->get_loc());
-            }
-
-            assert($4.size() == 1);
-            char id = $4[0];
-
+var : VAR var_type Integer VarId String END { 
             auto hierarchy = driver.current_scope_;
-            hierarchy.push_back($5);
+            hierarchy.push_back($5); //Add name to current hierarchy
 
-            $$ = Var($2, width, id, hierarchy);
+            $$ = Var($2, $3, $4, hierarchy);
         }
-    | VAR var_type String String String String END { 
-            //Sometimes VCD put the index (e.g. [0]) in a separate string after the base signal name
-            stringstream width_ss;
-            width_ss << $3; 
-            size_t width;
-            width_ss >> width;
-            if(width_ss.fail() || !width_ss.eof()) {
-                stringstream msg_ss;
-                msg_ss << "Failed to parse width value '" << $3 << "'";
-                throw vcdparse::ParseError(msg_ss.str(), driver.lexer_->get_loc());
-            }
-
-            assert($4.size() == 1);
-            char id = $4[0];
+    | VAR var_type Integer VarId String String END { 
 
             auto hierarchy = driver.current_scope_;
-            hierarchy.push_back($5 + $6); //Join the index and base name
 
-            $$ = Var($2, width, id, hierarchy);
+            //Sometimes VCD put the index (e.g. [0]) in a separate string after the base signal name
+            //so concatonate them
+            hierarchy.push_back($5 + $6);
+
+            $$ = Var($2, $3, $4, hierarchy);
         }
     ;
 
