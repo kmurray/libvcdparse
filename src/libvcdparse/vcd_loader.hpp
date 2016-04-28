@@ -38,7 +38,6 @@ class Loader {
 
     private:
         void set_curr_time(size_t time) { 
-            assert(curr_time_ != 1424);
             curr_time_ = time; 
 
             assert(seen_times_.count(time) == 0);
@@ -46,7 +45,6 @@ class Loader {
         }
 
         size_t curr_time() { 
-            assert(curr_time_ != 1424);
             return curr_time_; 
         }
 
