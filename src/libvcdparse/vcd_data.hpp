@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cassert>
+#include <limits>
 
 #include "vcd_data_fwd.hpp"
 
@@ -20,7 +21,7 @@ namespace vcdparse {
 
     class TimeValue {
         public:
-            TimeValue(size_t new_time, LogicValue new_value)
+            TimeValue(size_t new_time=0, LogicValue new_value=LogicValue::UNKOWN)
                 : time_(new_time)
                 , value_(new_value) 
                 {}
