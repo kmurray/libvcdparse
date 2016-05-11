@@ -102,7 +102,7 @@ namespace vcdparse {
             VcdData() = default;
             VcdData(const Header& new_header, std::vector<SignalValues> new_signal_values)
                 : header_(new_header)
-                , signal_values_(new_signal_values)
+                , signal_values_(std::move(new_signal_values))
                 {}
 
             const Header& header() const { return header_; }

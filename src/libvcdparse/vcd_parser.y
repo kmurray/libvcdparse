@@ -146,7 +146,7 @@ vcd_file : vcd_header definitions change_list {
                     signal_values.emplace_back(var, driver.change_list_[var.id()]);
                 }
 
-                driver.vcd_data_ = VcdData($1, signal_values);
+                driver.vcd_data_ = VcdData($1, std::move(signal_values));
             }
          ;
 
