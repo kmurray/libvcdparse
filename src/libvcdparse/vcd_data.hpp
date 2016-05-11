@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include <cassert>
 #include <limits>
 
@@ -19,21 +20,6 @@ namespace vcdparse {
     };
     std::ostream& operator<<(std::ostream& os, LogicValue val);
 
-    class TimeValue {
-        public:
-            TimeValue(size_t new_time=0, LogicValue new_value=LogicValue::UNKOWN)
-                : time_(new_time)
-                , value_(new_value) 
-                {}
-
-            size_t time() const { return time_; }
-            LogicValue value() const { return value_; }
-        
-        private:
-            size_t time_;
-            LogicValue value_;
-    };
-
     class Var {
         public:
             enum class Type {
@@ -42,43 +28,49 @@ namespace vcdparse {
                 PARAMETER
             };
 
+            typedef int Id;
+
             Var() = default;
-            Var(Type new_type, size_t new_width, std::string new_id, std::vector<std::string> new_hierarchical_name)
+            Var(Type new_type, size_t new_width, Id new_id, std::string new_str_id, std::vector<std::string> new_hierarchical_name)
                 : type_(new_type)
                 , width_(new_width)
                 , id_(new_id)
+                , str_id_(new_str_id)
                 , hierarchical_name_(new_hierarchical_name)
                 {}
 
             Type type() const { return type_; }
             size_t width() const { return width_; }
-            std::string id() const { return id_; }
+            std::string str_id() const { return str_id_; }
+            Id id() const { return id_; }
             std::vector<std::string> hierarchical_name() const { return hierarchical_name_; }
             std::string name() const { return *(--hierarchical_name_.end()); }
 
         private:
             Type type_;
             size_t width_;
-            std::string id_;
+            Id id_;
+            std::string str_id_;
             std::vector<std::string> hierarchical_name_;
     };
     std::ostream& operator<<(std::ostream& os, Var::Type type);
 
-    class SignalValues {
+    class TimeValue {
         public:
-            typedef std::vector<TimeValue> TimeValues;
-
-            SignalValues(const Var& new_var, const TimeValues& tvs)
-                : var_(new_var)
-                , time_values_(tvs)
+            TimeValue(size_t new_time=0, Var::Id new_var_id=-1, LogicValue new_value=LogicValue::UNKOWN)
+                : time_(new_time)
+                , var_id_(new_var_id)
+                , value_(new_value) 
                 {}
 
-            const TimeValues& time_values() const { return time_values_; }
-            const Var& var() const { return var_; }
-
+            size_t time() const { return time_; }
+            Var::Id var_id() const { return var_id_; }
+            LogicValue value() const { return value_; }
+        
         private:
-            Var var_;
-            TimeValues time_values_;
+            size_t time_;
+            Var::Id var_id_;
+            LogicValue value_;
     };
 
     class Header {
@@ -96,21 +88,24 @@ namespace vcdparse {
             std::string timescale_;
     };
 
-
     class VcdData {
         public:
+            typedef std::vector<TimeValue> TimeValues;
             VcdData() = default;
-            VcdData(const Header& new_header, std::vector<SignalValues> new_signal_values)
-                : header_(new_header)
-                , signal_values_(std::move(new_signal_values))
+            VcdData(const Header new_header, std::vector<Var> new_vars, TimeValues new_time_values)
+                : header_(std::move(new_header))
+                , vars_(std::move(new_vars))
+                , time_values_(std::move(new_time_values))
                 {}
 
             const Header& header() const { return header_; }
-            const std::vector<SignalValues>& signal_values() const { return signal_values_; }
+            const std::vector<Var>& vars() const { return vars_; }
+            const TimeValues& time_values() const { return time_values_; }
 
         private:
             Header header_;
-            std::vector<SignalValues> signal_values_;
+            std::vector<Var> vars_;
+            TimeValues time_values_;
 
     };
 

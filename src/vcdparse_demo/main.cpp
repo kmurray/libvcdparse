@@ -12,8 +12,8 @@ void print_changes(const VcdData& vcd_data);
 
 int main(int argc, char** argv) {
 
-    if(argc != 2) {
-        std::cout << "Usage: " << argv[0] << " vcd_file" << "\n";
+    if(argc < 2 || (argc == 3 && std::string(argv[2]) != "-print") || argc > 3) {
+        std::cout << "Usage: " << argv[0] << " vcd_file" << " [-print]\n";
         return 1;
     }
 
@@ -22,8 +22,11 @@ int main(int argc, char** argv) {
     if(loaded) {
         std::cout << "Successfully loaded VCD\n";
 
-        auto& vcd_data = vcd_loader.get_vcd_data();
-        //print_vcd(vcd_data);
+        const auto& vcd_data = vcd_loader.get_vcd_data();
+
+        if(argc == 3 && std::string(argv[2]) == "-print") {
+            print_vcd(vcd_data);
+        }
         return 0;
     } else {
         std::cout << "Failed to load VCD\n";
@@ -49,12 +52,11 @@ void print_header(const Header& header) {
     std::cout << "$end\n";
 }
 void print_vars(const VcdData& vcd_data) {
-    for(const auto& sigvals : vcd_data.signal_values()) {
-        const auto& var = sigvals.var();
+    for(const auto& var : vcd_data.vars()) {
         std::cout << "$var ";
         std::cout << var.type() << " ";
         std::cout << var.width() << " ";
-        std::cout << var.id() << " ";
+        std::cout << var.str_id() << " ";
         std::cout << var.name() << " ";
         std::cout << "$end\n";
     }
@@ -62,27 +64,18 @@ void print_vars(const VcdData& vcd_data) {
 }
 
 void print_changes(const VcdData& vcd_data) {
-    //Collect all the changes by time
-    std::map<size_t,std::vector<std::tuple<LogicValue,std::string>>> changes_by_time;
-    for(const auto& sigvals : vcd_data.signal_values()) {
-        const auto& var = sigvals.var();
-        for(const auto& tv : sigvals.time_values()) {
-            changes_by_time[tv.time()].push_back(std::make_tuple(tv.value(), var.id()));
-        }
+    std::map<Var::Id,std::string> var_id_to_str;
+    for(const auto& var : vcd_data.vars()) {
+        var_id_to_str[var.id()] = var.str_id();
     }
 
-    //Print them out
-    for(auto kv : changes_by_time) {
-        size_t time = kv.first;
-
-        std::cout << "#" << time << "\n";
-
-        for(auto change : kv.second) {
-            LogicValue val;
-            std::string id;
-            std::tie(val, id) = change;
-            std::cout << val << id << "\n";
+    size_t curr_time = 0;
+    std::cout << "#" << curr_time << std::endl;
+    for(const auto& time_val : vcd_data.time_values()) {
+        if(time_val.time() != curr_time) {
+            curr_time = time_val.time();
+            std::cout << "#" << curr_time << "\n";
         }
+        std::cout << time_val.value() << var_id_to_str[time_val.var_id()] << "\n";
     }
-
 }

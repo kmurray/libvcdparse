@@ -28,6 +28,37 @@ bool Loader::load(std::string filename) {
 bool Loader::load(std::istream& is, std::string filename) {
     assert(is.good());
 
+    //Reset
+    vcd_data_ = VcdData(); 
+    time_values_.clear();
+    curr_time_ = 0;
+    change_count_ = 0;
+
+    //As a memory optimization can we pre-allocate space for the time-values.
+    //This avoids having to grow the time-values vector dynamically, avoiding the worst-case
+    //doubling in memory consumption
+    //
+    //We pre-count the number of lines that are potentially time-values to determine how much
+    //space to allocate
+    if(pre_allocate_time_values_) {
+        int line_count = 0;
+        std::string line;
+        while(std::getline(is, line)) {
+            //Only count lines that are not timestamps (#) or header ($)
+            //this will be a (slightly) pessimistic count which is OK
+            if(line[0] != '#' && line[0] != '$') {
+                line_count++;
+            }
+        }
+
+        std::cout << "Reserving space for " << line_count << " time values" << std::endl;
+        time_values_.reserve(line_count);
+
+        //Rest stream to beginning
+        is.clear();
+        is.seekg(0);
+    }
+
     //Update the filename for location references
     filename_ = filename;
 
@@ -41,6 +72,7 @@ bool Loader::load(std::istream& is, std::string filename) {
 
     int retval;
     try {
+
         //Do the parsing
         retval = parser_->parse();
 
@@ -51,29 +83,28 @@ bool Loader::load(std::istream& is, std::string filename) {
         return false;
     }
 
-    assert(verify_times());
-
     //Bision returns 0 if successful
     return (retval == 0);
+}
+
+Var::Id Loader::generate_var_id(std::string str_id) {
+    Var::Id id = -1;
+    auto iter = var_str_to_id_.find(str_id);
+    if(iter == var_str_to_id_.end()) {
+        //Create ID
+        id = max_var_id_;
+        var_str_to_id_[str_id] = id;
+        max_var_id_++;
+    } else {
+        //Found
+        id = iter->second;
+    }
+    return id;
 }
 
 void Loader::on_error(ParseError& error) {
     //Default implementation, just print out the error
     std::cout << "VCD Error " << error.loc() << ": " << error.what() << "\n";
-}
-
-bool Loader::verify_times() {
-    for(const auto& sig_values : vcd_data_.signal_values()) {
-        for(auto tv : sig_values.time_values()) {
-
-            if(seen_times_.count(tv.time()) == 0) {
-                assert(false);
-                return false;
-            }
-
-        }
-    }
-    return true;
 }
 
 } //vcdparse

@@ -37,31 +37,25 @@ class Loader {
         virtual void on_error(ParseError& error);
 
     private:
-        void set_curr_time(size_t time) { 
-            curr_time_ = time; 
-
-            assert(seen_times_.count(time) == 0);
-            seen_times_.insert(time); 
-        }
-
-        size_t curr_time() { 
-            return curr_time_; 
-        }
-
-        bool verify_times();
-
+        Var::Id generate_var_id(std::string str_id);
     private:
         friend Parser;
         std::string filename_;
         std::unique_ptr<Lexer> lexer_;
         std::unique_ptr<Parser> parser_;
 
+        bool pre_allocate_time_values_ = true;
+
         VcdData vcd_data_;
         std::vector<std::string> current_scope_;
-        std::unordered_map<std::string,std::vector<TimeValue>> change_list_;
-        size_t change_count_;
         size_t curr_time_;
-        std::set<size_t> seen_times_;
+        size_t change_count_;
+
+        VcdData::TimeValues time_values_;
+
+        std::map<std::string,Var::Id> var_str_to_id_;
+        Var::Id max_var_id_ = 0;
+
 };
 
 } //vcdparse

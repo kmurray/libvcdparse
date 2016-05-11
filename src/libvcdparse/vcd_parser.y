@@ -130,23 +130,11 @@
 %start vcd_file
 
 %initial-action {
-    driver.vcd_data_ = VcdData(); 
-    driver.current_scope_.clear();
-    driver.change_count_ = 0;
-    driver.change_list_.clear();
 }
 
 %%
 vcd_file : vcd_header definitions change_list { 
-                std::vector<SignalValues> signal_values;
-
-                auto defs = $2;
-
-                for(auto var : defs) {
-                    signal_values.emplace_back(var, driver.change_list_[var.id()]);
-                }
-
-                driver.vcd_data_ = VcdData($1, std::move(signal_values));
+                driver.vcd_data_ = VcdData(std::move($1), std::move($2), std::move(driver.time_values_));
             }
          ;
 
@@ -178,7 +166,7 @@ var : VAR var_type Integer VarId String END {
             auto hierarchy = driver.current_scope_;
             hierarchy.push_back($5); //Add name to current hierarchy
 
-            $$ = Var($2, $3, $4, hierarchy);
+            $$ = Var($2, $3, driver.generate_var_id($4), $4, hierarchy);
         }
     | VAR var_type Integer VarId String String END { 
 
@@ -188,7 +176,7 @@ var : VAR var_type Integer VarId String END {
             //so concatonate them
             hierarchy.push_back($5 + $6);
 
-            $$ = Var($2, $3, $4, hierarchy);
+            $$ = Var($2, $3, driver.generate_var_id($4), $4, hierarchy);
         }
     ;
 
@@ -202,16 +190,15 @@ upscope : UPSCOPE END { }
 
 enddefinitions : ENDDEFINITIONS END { }
 
-change_list : Time DUMPVARS  { driver.set_curr_time($1); }
-            | change_list Time  { driver.set_curr_time($2); }
+change_list : Time DUMPVARS  { driver.curr_time_ = $1; }
+            | change_list Time  { driver.curr_time_ = $2; }
             | change_list LogicValue VarId { 
-                    driver.change_list_[$3].emplace_back(driver.curr_time(), $2);
+                    driver.time_values_.push_back(TimeValue(driver.curr_time_, driver.generate_var_id($3), $2));
 
                     driver.change_count_++;
                     if(driver.change_count_ % 10000000 == 0) {
                         cout << "Loaded " << driver.change_count_ / 1.e6 << "M changes" << std::endl;
                     }
-                    /*if(driver.change_count_ == 40000000) std::exit(1);*/
                 }
             | change_list END { }
             ;
