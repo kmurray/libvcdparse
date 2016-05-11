@@ -41,7 +41,7 @@ bool Loader::load(std::istream& is, std::string filename) {
     //We pre-count the number of lines that are potentially time-values to determine how much
     //space to allocate
     if(pre_allocate_time_values_) {
-        int line_count = 0;
+        size_t line_count = 0;
         std::string line;
         while(std::getline(is, line)) {
             //Only count lines that are not timestamps (#) or header ($)
