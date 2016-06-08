@@ -50,7 +50,7 @@ set(GEN_FILES_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen_files)
 file(MAKE_DIRECTORY ${GEN_FILES_DIR})
 
 #We use cmake to find the relevant executables
-find_package(BISON REQUIRED)
+find_package(BISON REQUIRED 3.0)
 find_package(FLEX REQUIRED)
 
 #The flex/bison code is not warning clean so we need to suppress some warnings
